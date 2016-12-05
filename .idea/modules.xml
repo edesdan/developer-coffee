@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/coffee/coffee.iml" filepath="$PROJECT_DIR$/coffee/coffee.iml" />
+      <module fileurl="file://$PROJECT_DIR$/developer/developer.iml" filepath="$PROJECT_DIR$/developer/developer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/microservices-parent.iml" filepath="$PROJECT_DIR$/microservices-parent.iml" />
+    </modules>
+  </component>
+</project>

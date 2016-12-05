@@ -1,0 +1,162 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <parent>
+        <groupId>edesdan.microservices</groupId>
+        <artifactId>microservices-parent</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>coffee</artifactId>
+    <packaging>war</packaging>
+    <name>coffee</name>
+
+    <properties>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
+        <failOnMissingWebXml>false</failOnMissingWebXml>
+
+        <!-- Docker -->
+        <docker.db.prefix>COFFEE</docker.db.prefix>
+        <docker.db.dockerfile>${project.basedir}/Dockerfile</docker.db.dockerfile>
+        <docker.image-name>edesdan.microservices/edesdan.microservices.coffee:${project.version}</docker.image-name>
+        <docker.image-alias>coffee</docker.image-alias>
+    </properties>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-api</artifactId>
+            <version>7.0</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <!-- docker -->
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <configuration>
+                    <showLogs>${docker.image-alias}</showLogs> <!-- must match the alias name -->
+                    <verbose>true</verbose>
+                    <images>
+                        <image>
+                            <name>${docker.image-name}</name>
+                            <alias>${docker.image-alias}</alias>
+                            <!-- mvn docker:build -->
+                            <build>
+                                <dockerFile>${docker.db.dockerfile}</dockerFile>
+                            </build>
+                            <!-- mvn docker:start -->
+                            <run>
+                                <namingStrategy>alias</namingStrategy>
+                                <labels>
+                                    <environment>development</environment>
+                                    <version>${project.version}</version>
+                                </labels>
+                                <ports>
+                                    <port>8081:8080</port>
+                                </ports>
+                                <!--    <wait>
+                                  <log>${docker.wait.log.db.output}</log>
+                                  <time>60000</time>
+                              </wait>-->
+                                <log>
+                                    <prefix>${docker.db.prefix}</prefix>
+                                    <date>DEFAULT</date>
+                                    <color>blue</color>
+                                    <!--   <file>docker.log</file>-->
+                                </log>
+                            </run>
+                        </image>
+                    </images>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>build</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>${project.basedir}/docker/build</directory>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>${maven-antrun-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <configuration>
+                            <tasks>
+                                <copy file="target/coffee.war" todir="docker/build"/>
+                            </tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <!--
+                        States that the plugin's add-test-source goal is executed at
+                        generate-test-sources phase.
+                    -->
+                    <execution>
+                        <id>add-integration-test-sources</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>add-test-source</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Configures the source directory of integration tests. -->
+                            <sources>
+                                <source>src/test-integration/java</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <version>${maven-properties-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>write-project-properties</goal>
+                        </goals>
+                        <configuration>
+                            <outputFile>
+                                ${project.build.directory}/project.properties
+                            </outputFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
